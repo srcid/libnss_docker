@@ -86,7 +86,7 @@ char* get_container_ip(const char* container_name_or_id)
     json_t* state = json_object_get(root, "State");
     const char* status = json_string_value(json_object_get(state, "Status"));
 
-    if (strcmp(status, "running") != 0) {
+    if (state == NULL || status == NULL || strcmp(status, "running") != 0) {
         /* Container it's not running, then it can have an IP. Ignoring it. */
         return NULL;
     }
@@ -95,7 +95,7 @@ char* get_container_ip(const char* container_name_or_id)
     json_t* networks = json_object_get(network_settings, "Networks");
     json_t* bridge = json_object_get(networks, "bridge");
     
-    if (bridge == NULL) {
+    if (network_settings == NULL || networks == NULL || bridge == NULL) {
         /* Container it's not on bridge network. Ignoring it. */
         return NULL;
     }
