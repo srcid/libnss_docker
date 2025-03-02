@@ -7,4 +7,7 @@ libnss_docker.so.2: libnss_docker.c
 clean:
 	rm a.out libnss_docker.so.2 > /dev/null 2>&1
 
-.PHONY: all clean
+install:
+	sudo install -o root -g root -m 755 libnss_docker.so.2 /usr/lib64/
+
+.PHONY: all clean install
