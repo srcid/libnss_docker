@@ -19,3 +19,4 @@ IncludeCategories:
   - Regex: "^\".*\""
     Priority: 2
 SeparateDefinitionBlocks: Always
+AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
