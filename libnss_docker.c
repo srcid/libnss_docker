@@ -7,12 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
-#include <nss.h>
-#include <errno.h>
-
-#include <curl/curl.h>
-#include <jansson.h>
 
 #define DOCKER_UNIX_SOCKET_PATH "/var/run/docker.sock"
 #define DOCKER_URL_TEMPLATE "http://localhost/v1.47/containers/%s/json"
@@ -63,16 +57,12 @@ struct Response* fetch_container_json(const char* container_name_or_id)
     curl_easy_setopt(curl, CURLOPT_URL, docker_url);
     curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, DOCKER_UNIX_SOCKET_PATH);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)response);
-    
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) response);
+
     res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
-        fprintf(stderr,
-            "curl_easy_perform() failed: [%d] %s\n",
-            res,
-            curl_easy_strerror(res)
-        );
+        fprintf(stderr, "curl_easy_perform() failed: [%d] %s\n", res, curl_easy_strerror(res));
     }
 
     curl_easy_cleanup(curl);
@@ -84,7 +74,7 @@ char* get_container_ip(const char* container_name_or_id)
 {
     struct Response* response = fetch_container_json(container_name_or_id);
     json_error_t error;
-    json_t *root = json_loads(response->content, 0, &error);
+    json_t* root = json_loads(response->content, 0, &error);
 
     /* clearing response, as it's not neeeded anymore */
     free(response->content);
@@ -103,7 +93,7 @@ char* get_container_ip(const char* container_name_or_id)
         /* Container it's not running, then it can have an IP. Ignoring it. */
         return NULL;
     }
-    
+
     json_t* network_settings = json_object_get(root, "NetworkSettings");
     json_t* networks         = json_object_get(network_settings, "Networks");
     json_t* bridge           = json_object_get(networks, "bridge");
@@ -112,7 +102,7 @@ char* get_container_ip(const char* container_name_or_id)
         /* Container it's not on bridge network. Ignoring it. */
         return NULL;
     }
-    
+
     const char* ip = json_string_value(json_object_get(bridge, "IPAddress"));
     char* res_ip   = (char*) malloc(sizeof(char) * IPV4_STR_SIZE);
 
@@ -124,7 +114,8 @@ char* get_container_ip(const char* container_name_or_id)
     return res_ip;
 }
 
-enum nss_status _nss_docker_gethostbyname2_r (char* name, int af, struct hostent* result, char* buf, size_t buflen, int* errnop, int* herrnop)
+enum nss_status _nss_docker_gethostbyname2_r(char* name, int af, struct hostent* result, char* buf,
+                                             size_t buflen, int* errnop, int* herrnop)
 {
     int name_len         = strlen(name);
     int is_docker_domain = strcmp(&name[name_len - DOCKER_DOMAIN_SUFFIX_LEN],
@@ -136,9 +127,9 @@ enum nss_status _nss_docker_gethostbyname2_r (char* name, int af, struct hostent
     }
 
     char container_name[DOCKER_NAME_LENGTH];
-    strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);    
+    strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
     char* ip = get_container_ip(container_name);
-    
+
     if (ip == NULL) return NSS_STATUS_NOTFOUND;
 
     struct in_addr ip_addr;
