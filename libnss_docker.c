@@ -8,10 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DOCKER_UNIX_SOCKET_PATH "/var/run/docker.sock"
-#define DOCKER_URL_TEMPLATE "http://localhost/v1.47/containers/%s/json"
 #define IPV4_STR_SIZE 16 /* 12 digits for numbers, 3 for dots, and last one for \0 */
 
+#define DOCKER_UNIX_SOCKET_PATH "/var/run/docker.sock"
+#define DOCKER_URL_TEMPLATE "http://localhost/v1.47/containers/%s/json"
 #define DOCKER_DOMAIN_SUFFIX ".docker"
 #define DOCKER_DOMAIN_SUFFIX_LEN 7
 #define DOCKER_NAME_LENGTH 129
