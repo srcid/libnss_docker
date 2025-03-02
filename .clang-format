@@ -1,0 +1,21 @@
+BasedOnStyle: LLVM
+UseTab: Never
+IndentWidth: 4
+ColumnLimit: 100
+PointerAlignment: Left
+QualifierAlignment: Left
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: false
+AllowShortIfStatementsOnASingleLine: true
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: true
+SortIncludes: CaseInsensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: "^<.*>"
+    Priority: 1
+  - Regex: "^\".*\""
+    Priority: 2
+SeparateDefinitionBlocks: Always
