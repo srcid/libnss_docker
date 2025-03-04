@@ -117,9 +117,9 @@ char* get_container_ip(const char* container_name_or_id)
 enum nss_status _nss_docker_gethostbyname2_r(char* name, int af, struct hostent* result, char* buf,
                                              size_t buflen, int* errnop, int* herrnop)
 {
-    int name_len         = strlen(name);
-    int is_docker_domain = strcmp(&name[name_len - DOCKER_DOMAIN_SUFFIX_LEN],
-                                  DOCKER_DOMAIN_SUFFIX); /* 0 if it's equal */
+    const size_t name_len = strlen(name);
+    int is_docker_domain  = strcmp(&name[name_len - DOCKER_DOMAIN_SUFFIX_LEN],
+                                   DOCKER_DOMAIN_SUFFIX); /* 0 if it's equal */
 
     if (af != AF_INET || is_docker_domain != 0) {
         *errnop = ENOENT;
