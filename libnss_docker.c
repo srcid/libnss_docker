@@ -141,7 +141,7 @@ enum nss_status _nss_docker_gethostbyname2_r(char* name, int af, struct hostent*
 
     free(ip);
 
-    const size_t required_buflen = strlen(name) + 1         // size of name plus one byte for '\0'
+    const size_t required_buflen = name_len + 1             // size of name plus one byte for '\0'
                                    + sizeof(struct in_addr) // size of the ip address
                                    + sizeof(char*) * 2; // size of the arrays aliases and addr_list
 
