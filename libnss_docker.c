@@ -128,7 +128,8 @@ enum nss_status _nss_docker_gethostbyname2_r(char* name, int af, struct hostent*
 
     char container_name[DOCKER_NAME_LENGTH];
     strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
-    char* ip = get_container_ip(container_name);
+    container_name[name_len - DOCKER_DOMAIN_SUFFIX_LEN] = '\0';
+    char* ip                                            = get_container_ip(container_name);
 
     if (ip == NULL) return NSS_STATUS_NOTFOUND;
 
