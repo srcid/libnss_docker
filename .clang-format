@@ -2,7 +2,6 @@ BasedOnStyle: LLVM
 UseTab: Never
 IndentWidth: 4
 ColumnLimit: 100
-PointerAlignment: Left
 QualifierAlignment: Left
 BreakBeforeBraces: Custom
 BraceWrapping:
