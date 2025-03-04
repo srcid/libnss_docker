@@ -114,14 +114,14 @@ char* get_container_ip(const char* container_name_or_id)
     return res_ip;
 }
 
-enum nss_status _nss_docker_gethostbyname2_r(char* name, int af, struct hostent* result, char* buf,
-                                             size_t buflen, int* errnop, int* herrnop)
+enum nss_status _nss_docker_gethostbyname_r(const char* name, struct hostent* result, char* buf,
+                                            size_t buflen, int* errnop, int* h_errnop)
 {
     const size_t name_len = strlen(name);
     int is_docker_domain  = strcmp(&name[name_len - DOCKER_DOMAIN_SUFFIX_LEN],
                                    DOCKER_DOMAIN_SUFFIX); /* 0 if it's equal */
 
-    if (af != AF_INET || is_docker_domain != 0) {
+    if (is_docker_domain != 0) {
         *errnop = ENOENT;
         return NSS_STATUS_UNAVAIL;
     }
@@ -171,4 +171,15 @@ enum nss_status _nss_docker_gethostbyname2_r(char* name, int af, struct hostent*
     result->h_addr_list = addr_list;
 
     return NSS_STATUS_SUCCESS;
+}
+
+enum nss_status _nss_docker_gethostbyname2_r(const char* name, int af, struct hostent* result,
+                                             char* buf, size_t buflen, int* errnop, int* h_errnop)
+{
+    if (af != AF_INET) {
+        *errnop = ENOENT;
+        return NSS_STATUS_UNAVAIL;
+    }
+
+    return _nss_docker_gethostbyname_r(name, result, buf, buflen, errnop, h_errnop);
 }
