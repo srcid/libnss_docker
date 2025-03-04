@@ -20,3 +20,4 @@ IncludeCategories:
     Priority: 2
 SeparateDefinitionBlocks: Always
 AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
+AlignConsecutiveMacros: true
