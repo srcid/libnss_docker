@@ -8,13 +8,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define IPV4_STR_SIZE 16 /* 12 digits for numbers, 3 for dots, and last one for \0 */
+#define IPV4_STR_LEN 16 /* 12 digits for numbers, 3 for dots, and last one for \0 */
 
 #define DOCKER_UNIX_SOCKET_PATH  "/var/run/docker.sock"
 #define DOCKER_URL_TEMPLATE      "http://localhost/v1.47/containers/%s/json"
 #define DOCKER_DOMAIN_SUFFIX     ".docker"
 #define DOCKER_DOMAIN_SUFFIX_LEN 7
-#define DOCKER_NAME_LENGTH       129
+#define DOCKER_NAME_LEN          129
 
 struct Response {
     char *content;
@@ -103,7 +103,7 @@ char *get_container_ip(const char *container_name_or_id)
     }
 
     const char *ip = json_string_value(json_object_get(bridge, "IPAddress"));
-    char *res_ip   = (char *) malloc(sizeof(char) * IPV4_STR_SIZE);
+    char *res_ip   = (char *) malloc(sizeof(char) * IPV4_STR_LEN);
 
     strcpy(res_ip, ip);
 
@@ -125,7 +125,7 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
         return NSS_STATUS_UNAVAIL;
     }
 
-    char container_name[DOCKER_NAME_LENGTH];
+    char container_name[DOCKER_NAME_LEN];
     strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
     container_name[name_len - DOCKER_DOMAIN_SUFFIX_LEN] = '\0';
     char *ip                                            = get_container_ip(container_name);
