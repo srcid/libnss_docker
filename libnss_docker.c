@@ -121,18 +121,35 @@ int get_docker_info(const char *container_name_or_id, struct DockerInfo *docker_
     return 0;
 }
 
+/**
+ * Check if ".docker" is suffix of a string
+ *
+ * @param[in] name string containing root domain
+ * @return 1 if it's suffix is ".docker", 0 otherwise
+ *
+ * @pre name != NULL
+ */
+int is_docker_domain(const char *name)
+{
+    const size_t name_len = strlen(name);
+
+    /* It must have at leat one character without ".docker" */
+    if (name_len <= DOCKER_DOMAIN_SUFFIX_LEN) return 0;
+
+    const char *suffix = &name[name_len - DOCKER_DOMAIN_SUFFIX_LEN];
+
+    return !strcmp(suffix, DOCKER_DOMAIN_SUFFIX); /* strcmp returns 0 if it's equal */
+}
+
 enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *result, char *buf,
                                             size_t buflen, int *errnop, int *h_errnop)
 {
-    const size_t name_len = strlen(name);
-    int is_docker_domain  = strcmp(&name[name_len - DOCKER_DOMAIN_SUFFIX_LEN],
-                                   DOCKER_DOMAIN_SUFFIX); /* 0 if it's equal */
-
-    if (is_docker_domain != 0) {
+    if (is_docker_domain(name)) {
         *errnop = ENOENT;
         return NSS_STATUS_UNAVAIL;
     }
 
+    const size_t name_len = strlen(name);
     char container_name[DOCKER_NAME_LEN];
     strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
     container_name[name_len - DOCKER_DOMAIN_SUFFIX_LEN] = '\0';
