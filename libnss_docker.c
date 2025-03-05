@@ -15,6 +15,8 @@
 #define DOCKER_DOMAIN_SUFFIX     ".docker"
 #define DOCKER_DOMAIN_SUFFIX_LEN 7
 #define DOCKER_NAME_LEN          129
+#define DOCKER_ID_LEN            65
+#define DOCKER_STATUS_LEN        16
 
 struct Response {
     char *content;
@@ -69,48 +71,54 @@ struct Response *fetch_container_json(const char *container_name_or_id)
     return response;
 }
 
-char *get_container_ip(const char *container_name_or_id)
+struct DockerInfo {
+    char id[DOCKER_ID_LEN];
+    char name[DOCKER_NAME_LEN];
+    char status[DOCKER_STATUS_LEN];
+    char ip[IPV4_STR_LEN];
+};
+
+int get_docker_info(const char *container_name_or_id, struct DockerInfo *docker_info)
 {
-    struct Response *response = fetch_container_json(container_name_or_id);
+    struct Response *response;
     json_error_t error;
-    json_t *root = json_loads(response->content, 0, &error);
+    json_t *json;
+
+    response = fetch_container_json(container_name_or_id);
+    json     = json_loads(response->content, 0, &error);
 
     /* clearing response, as it's not neeeded anymore */
     free(response->content);
     free(response);
 
-    if (!root) {
+    if (!json) {
         /* Couldn't convert response string to JSON */
         fprintf(stderr, "Failed to convert to JSON: %s\n", error.text);
-        return NULL;
+        return 1;
     }
 
-    json_t *state      = json_object_get(root, "State");
-    const char *status = json_string_value(json_object_get(state, "Status"));
+    char *id, *name, *status, *ip;
+    int json_unpack_ex_status;
 
-    if (state == NULL || status == NULL || strcmp(status, "running") != 0) {
-        /* Container it's not running, then it can have an IP. Ignoring it. */
-        return NULL;
+    json_unpack_ex_status = json_unpack_ex(
+        json, &error, 0, "{ s:s, s:s, s:{s:s}, s:{s:{s:{s:s}}} }", "Id", &id, "Name", &name,
+        "State", "Status", &status, "NetworkSettings", "Networks", "bridge", "IPAddress", &ip);
+
+    if (json_unpack_ex_status) {
+        /* Couldn't stract the required fields */
+        fprintf(stderr, "Failed to extract fields: %s\n", error.text);
+        return 2;
     }
 
-    json_t *network_settings = json_object_get(root, "NetworkSettings");
-    json_t *networks         = json_object_get(network_settings, "Networks");
-    json_t *bridge           = json_object_get(networks, "bridge");
-
-    if (network_settings == NULL || networks == NULL || bridge == NULL) {
-        /* Container it's not on bridge network. Ignoring it. */
-        return NULL;
-    }
-
-    const char *ip = json_string_value(json_object_get(bridge, "IPAddress"));
-    char *res_ip   = (char *) malloc(sizeof(char) * IPV4_STR_LEN);
-
-    strcpy(res_ip, ip);
+    strcpy(docker_info->id, id);
+    strcpy(docker_info->name, &name[1]); /* skip '/' character in the name at index 0 */
+    strcpy(docker_info->status, status);
+    strcpy(docker_info->ip, ip);
 
     /* clearing JSON object */
-    json_decref(root);
+    json_decref(json);
 
-    return res_ip;
+    return 0;
 }
 
 enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *result, char *buf,
@@ -128,18 +136,17 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
     char container_name[DOCKER_NAME_LEN];
     strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
     container_name[name_len - DOCKER_DOMAIN_SUFFIX_LEN] = '\0';
-    char *ip                                            = get_container_ip(container_name);
+    struct DockerInfo docker_info;
+    int get_docker_info_status = get_docker_info(container_name, &docker_info);
 
-    if (ip == NULL) return NSS_STATUS_NOTFOUND;
+    if (get_docker_info_status != 0) return NSS_STATUS_NOTFOUND;
 
     struct in_addr ip_addr;
 
-    if (inet_pton(AF_INET, ip, &ip_addr) != 1) {
+    if (inet_pton(AF_INET, docker_info.ip, &ip_addr) != 1) {
         *errnop = EINVAL;
         return NSS_STATUS_UNAVAIL;
     }
-
-    free(ip);
 
     const size_t required_buflen = name_len + 1             // size of name plus one byte for '\0'
                                    + sizeof(struct in_addr) // size of the ip address
