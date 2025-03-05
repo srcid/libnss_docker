@@ -150,11 +150,11 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
     }
 
     const size_t name_len = strlen(name);
-    char container_name[DOCKER_NAME_LEN];
-    strncpy(container_name, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
-    container_name[name_len - DOCKER_DOMAIN_SUFFIX_LEN] = '\0';
+    char container_name_or_id[DOCKER_NAME_LEN];
+    strncpy(container_name_or_id, name, name_len - DOCKER_DOMAIN_SUFFIX_LEN);
+    container_name_or_id[name_len - DOCKER_DOMAIN_SUFFIX_LEN] = '\0';
     struct DockerInfo docker_info;
-    int get_docker_info_status = get_docker_info(container_name, &docker_info);
+    int get_docker_info_status = get_docker_info(container_name_or_id, &docker_info);
 
     if (get_docker_info_status != 0) return NSS_STATUS_NOTFOUND;
 
