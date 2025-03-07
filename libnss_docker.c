@@ -158,9 +158,9 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
 
     if (get_docker_info_status != 0) return NSS_STATUS_NOTFOUND;
 
-    struct in_addr ip_addr;
+    struct in_addr container_ip_addr;
 
-    if (inet_pton(AF_INET, docker_info.ip, &ip_addr) != 1) {
+    if (inet_pton(AF_INET, docker_info.ip, &container_ip_addr) != 1) {
         *errnop = EINVAL;
         return NSS_STATUS_UNAVAIL;
     }
@@ -185,7 +185,7 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
     aliases[0]   = NULL;
     addr_list[0] = (char *) addr;
     addr_list[1] = NULL;
-    *addr        = ip_addr;
+    *addr        = container_ip_addr;
 
     result->h_name      = h_name;
     result->h_aliases   = aliases;
