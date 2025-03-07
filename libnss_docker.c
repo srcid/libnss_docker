@@ -174,24 +174,31 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
         return NSS_STATUS_TRYAGAIN;
     }
 
-    char **aliases   = (char **) buf;
-    char **addr_list = (char **) (buf + sizeof(char *) * 2);
-    char *h_name     = (char *) (buf + sizeof(char *) * 2 + sizeof(char *) * 2);
-    struct in_addr *addr =
-        (struct in_addr *) (buf + sizeof(char *) * 2 + sizeof(char *) * 2 + strlen(name) + 1);
+    char *h_name, **h_aliases, **h_addr_list;
+    struct in_addr *addr;
 
-    strcpy(h_name, name);
+    const size_t h_name_len       = strlen(docker_info.name) + DOCKER_DOMAIN_SUFFIX_LEN,
+                 container_id_len = strlen(docker_info.id) + DOCKER_DOMAIN_SUFFIX_LEN;
 
-    aliases[0]   = NULL;
-    addr_list[0] = (char *) addr;
-    addr_list[1] = NULL;
-    *addr        = container_ip_addr;
+    h_name = buf;
+    snprintf(h_name, h_name_len + 1, "%s%s", docker_info.name, DOCKER_DOMAIN_SUFFIX);
+
+    h_aliases    = (char **) (h_name + h_name_len + 1);
+    h_aliases[0] = (char *) (h_aliases + 2);
+    h_aliases[1] = NULL;
+    snprintf(h_aliases[0], container_id_len + 1, "%s%s", docker_info.id, DOCKER_DOMAIN_SUFFIX);
+
+    h_addr_list    = (char **) (h_aliases[0] + container_id_len + 1);
+    addr           = (struct in_addr *) (h_addr_list + 2);
+    *addr          = container_ip_addr;
+    h_addr_list[0] = (char *) addr;
+    h_addr_list[1] = NULL;
 
     result->h_name      = h_name;
-    result->h_aliases   = aliases;
+    result->h_aliases   = h_aliases;
     result->h_addrtype  = AF_INET;
     result->h_length    = sizeof(struct in_addr);
-    result->h_addr_list = addr_list;
+    result->h_addr_list = h_addr_list;
 
     return NSS_STATUS_SUCCESS;
 }
