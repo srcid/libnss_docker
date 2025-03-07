@@ -165,6 +165,9 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
         return NSS_STATUS_UNAVAIL;
     }
 
+    const size_t container_name_len = strlen(docker_info.name) + DOCKER_DOMAIN_SUFFIX_LEN,
+                 container_id_len   = strlen(docker_info.id) + DOCKER_DOMAIN_SUFFIX_LEN;
+
     const size_t required_buflen = name_len + 1             // size of name plus one byte for '\0'
                                    + sizeof(struct in_addr) // size of the ip address
                                    + sizeof(char *) * 2; // size of the arrays aliases and addr_list
@@ -177,13 +180,10 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
     char *h_name, **h_aliases, **h_addr_list;
     struct in_addr *addr;
 
-    const size_t h_name_len       = strlen(docker_info.name) + DOCKER_DOMAIN_SUFFIX_LEN,
-                 container_id_len = strlen(docker_info.id) + DOCKER_DOMAIN_SUFFIX_LEN;
-
     h_name = buf;
-    snprintf(h_name, h_name_len + 1, "%s%s", docker_info.name, DOCKER_DOMAIN_SUFFIX);
+    snprintf(h_name, container_name_len + 1, "%s%s", docker_info.name, DOCKER_DOMAIN_SUFFIX);
 
-    h_aliases    = (char **) (h_name + h_name_len + 1);
+    h_aliases    = (char **) (h_name + container_name_len + 1);
     h_aliases[0] = (char *) (h_aliases + 2);
     h_aliases[1] = NULL;
     snprintf(h_aliases[0], container_id_len + 1, "%s%s", docker_info.id, DOCKER_DOMAIN_SUFFIX);
