@@ -144,7 +144,7 @@ int is_docker_domain(const char *name)
 enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *result, char *buf,
                                             size_t buflen, int *errnop, int *h_errnop)
 {
-    if (is_docker_domain(name)) {
+    if (!is_docker_domain(name)) {
         *errnop = ENOENT;
         return NSS_STATUS_UNAVAIL;
     }
