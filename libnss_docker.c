@@ -168,9 +168,12 @@ enum nss_status _nss_docker_gethostbyname_r(const char *name, struct hostent *re
     const size_t container_name_len = strlen(docker_info.name) + DOCKER_DOMAIN_SUFFIX_LEN,
                  container_id_len   = strlen(docker_info.id) + DOCKER_DOMAIN_SUFFIX_LEN;
 
-    const size_t required_buflen = name_len + 1             // size of name plus one byte for '\0'
-                                   + sizeof(struct in_addr) // size of the ip address
-                                   + sizeof(char *) * 2; // size of the arrays aliases and addr_list
+    const size_t required_buflen =
+        container_name_len + 1    // container name and docker domain suffix length plus 1 for '\0'
+        + sizeof(char *) * 2      // h_aliases' size
+        + container_id_len + 1    // container id and docker domain suffix length plus 1 for '\0'
+        + sizeof(char *) * 2      // h_addr_list's size
+        + sizeof(struct in_addr); // ip address' size
 
     if (buflen < required_buflen) {
         *errnop = ERANGE;
