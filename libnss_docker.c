@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define IPV4_STR_LEN 16 /* 12 digits for numbers, 3 for dots, and last one for \0 */
-
 #define DOCKER_UNIX_SOCKET_PATH  "/var/run/docker.sock"
 #define DOCKER_URL_TEMPLATE      "http://localhost/v1.47/containers/%s/json"
 #define DOCKER_DOMAIN_SUFFIX     ".docker"
@@ -75,7 +73,7 @@ struct DockerInfo {
     char id[DOCKER_ID_LEN];
     char name[DOCKER_NAME_LEN];
     char status[DOCKER_STATUS_LEN];
-    char ip[IPV4_STR_LEN];
+    char ip[INET_ADDRSTRLEN];
 };
 
 int get_docker_info(const char *container_name_or_id, struct DockerInfo *docker_info)
