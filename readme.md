@@ -23,3 +23,17 @@ LD_LIBRARY_PATH=$PWD getent hosts pg.docker
 ## Debbuging
 
 You can compile the module with debugger flag `-g`, link it with another c program, and use vscode debbuging tools, but I didn't find a way to simulate the `getent` behavior.
+
+## ToDo
+
+- [ ] split the project, now it's only one C file.
+- [ ] implement units tests, now I'm testing manually
+
+## Related Project
+
+This project main aim was learning, you may want to look at those other projects.
+
+- [nss-docker](https://github.com/dex4er/nss-docker)
+- [docker-nss](https://github.com/danni/docker-nss)
+- [nss-docker](https://github.com/costela/nss-docker)
+- [nss-docker-ng](https://github.com/petski/nss-docker-ng)
