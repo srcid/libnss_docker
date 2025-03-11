@@ -12,4 +12,4 @@ clean:
 install:
 	sudo install -o root -g root -m 755 libnss_docker.so.2 /usr/lib64/
 
-.PHONY: all clean install
+.PHONY: all main clean install
